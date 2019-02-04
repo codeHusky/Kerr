@@ -1,0 +1,22 @@
+{
+  "name": "kerr",
+  "version": "1.0.0",
+  "description": "A bot for Discord",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeHusky/kerr.git"
+  },
+  "author": "Loki Rautio <loki@codehusky.com>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/codeHusky/kerr/issues"
+  },
+  "homepage": "https://github.com/codeHusky/kerr#readme",
+  "dependencies": {
+    "discord.js": "^11.4.2"
+  }
+}
