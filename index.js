@@ -81,6 +81,7 @@ for(var i in modules){
 			*/
 			var cmd = m.commands[c];
 			commandRegister[cmd.aliases[0]] = {
+				aliases:cmd.aliases,
 				originModule: i,
 				helpSyntax: cmd.helpSyntax,
 				description: cmd.description,
@@ -99,14 +100,16 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 
-function getContext(msg, selfMod) {
+function getContext(guildConfig, msg, selfMod) {
 	return {
 		msg:msg,
+		Discord:Discord,
 		client: client,
-		commandRegister: null,
+		commandRegister: commandRegister,
 		logger: mlogger,
 		modules: modules,
-		selfMod: selfMod
+		selfMod: selfMod,
+		guildConfig: guildConfig
 	}
 }
 
@@ -125,7 +128,7 @@ client.on('message', function(msg) {
 				if(typeof command == "string"){
 					command = commandRegister[command];
 				}
-				command.callback(getContext(msg, modules[command.originModule]));
+				command.callback(getContext(guildConfig, msg, modules[command.originModule]));
 			}
 		}
 	}
