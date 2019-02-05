@@ -73,7 +73,7 @@ for(var i = 0; i < moduleDirs.length; i++){
 
 var commandRegister = {};
 
-function getContext(guildConfig, msg, selfMod) {
+function getContext(guildConfig, msg) {
 	return {
 		msg:msg,
 		Discord:Discord,
@@ -149,7 +149,7 @@ client.on('ready', function() {
 			});
 	})
 
-	setTimeout(function() {
+	/*setTimeout(function() {
 		modules["core/configuration"].getConfig(
 			getContext(null,null,modules["core/configuration"]),
 			"539901134995718155",
@@ -157,23 +157,30 @@ client.on('ready', function() {
 				logger.info("GUILD CONF:")
 				logger.info(JSON.stringify(conf));
 			});
-	},10000);
+	},10000);*/
 })
 
 client.on('message', function(msg) {
 	if(msg.channel.type == "text" && !msg.author.bot){
-		var guildConfig = modules["core/configuration"].getConfig();
-		if(msg.content.indexOf(guildConfig.prefix) == 0){
-			var cmd = msg.content.split(" ")[0].substring(guildConfig.prefix.length).toLowerCase();
-			if(cmd.length == 0) return;
-			if(commandRegister.hasOwnProperty(cmd)){
-				var command = commandRegister[cmd];
-				if(typeof command == "string"){
-					command = commandRegister[command];
+		modules["core/configuration"].getConfig(getContext(null,msg), msg.guild.id, function(conf){
+			if(conf != false){
+				const guildConfig = conf;
+				if(msg.content.indexOf(guildConfig.prefix) == 0){
+					var cmd = msg.content.split(" ")[0].substring(guildConfig.prefix.length).toLowerCase();
+					if(cmd.length == 0) return;
+					if(commandRegister.hasOwnProperty(cmd)){
+						var command = commandRegister[cmd];
+						if(typeof command == "string"){
+							command = commandRegister[command];
+						}
+						command.callback(getContext(guildConfig, msg, modules[command.originModule]));
+					}
 				}
-				command.callback(getContext(guildConfig, msg, modules[command.originModule]));
+			}else{
+				logger.error("Failed to retrieve guild config.");
 			}
-		}
+		});
+		
 	}
 })
 var clientCheck = setInterval(function() {

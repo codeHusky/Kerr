@@ -30,13 +30,10 @@ module.exports = {
 					var pCate = category[0].toUpperCase() + category.substring(1);
 
 					var cmdPrintable = "";
-					console.log(commands);
 					for(var j in commands){
 						var cmd = commands[j];
 						if(typeof cmd == "object"){
 							var aliases = "";
-							console.log(cmd);
-
 							if(cmd.aliases.length > 1){
 								for(var k = 1; k < cmd.aliases.length; k++){
 									aliases += ctx.guildConfig.prefix + cmd.aliases[k] + ", ";
