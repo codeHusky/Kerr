@@ -12,6 +12,7 @@ module.exports = {
 		prefix:"k!",
 		modules:{
 			// Make sure to add modules to this if you create more.
+			// TODO: change this to automated process that pulls the default states of modules via file
 			general:{
 				rigby:false,
 				starboard:true
