@@ -1,7 +1,7 @@
 module.exports = {
 	_metadata:{
 		core:true,
-		priority:0,
+		hasInit:false,
 		features:["commands"]
 	},
 	commands: [
@@ -45,7 +45,9 @@ module.exports = {
 							cmdPrintable += "**" + ctx.guildConfig.prefix + cmd.helpSyntax + "** " + ((aliases.length > 0)?"*("+aliases.substring(0,aliases.length-2)+")*":"") + " \n" + cmd.description + "\n\n" 
 						}
 					}
-					embed.addField(pCate,cmdPrintable,false);
+					if(cmdPrintable.length > 0){
+						embed.addField(pCate,cmdPrintable,false);
+					}
 				}
 				//ctx.msg.author.send(embed);
 				ctx.msg.channel.send(embed);

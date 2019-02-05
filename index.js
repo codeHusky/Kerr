@@ -6,8 +6,11 @@
 * this file. 
 * No functionality will be defined in this file.
 */
+const Discord = require('discord.js');
+const client = new Discord.Client();
 
 const fs = require("fs");
+
 function currentTime() {
     var date = new Date();
     var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
@@ -40,6 +43,7 @@ const logger = {
 }
 
 var modules = {};
+var moduleInitSequence = [];
 
 var moduleDirs = fs.readdirSync("modules/");
 for(var i = 0; i < moduleDirs.length; i++){
@@ -51,6 +55,14 @@ for(var i = 0; i < moduleDirs.length; i++){
 			logger.info("loading " + id)
 			proto.id = id;
 			modules[id] = proto;
+			if(proto._metadata.hasInit){
+				var pri = proto._metadata.priority;
+				if(moduleInitSequence[pri]){
+					moduleInitSequence[pri].push(id);
+				}else{
+					moduleInitSequence[pri] = [id];
+				}
+			}
 		}else{
 			logger.warn("invalid module: " + moduleDirs[i] + "/" + modFiles[j].toString())
 		}
@@ -61,6 +73,20 @@ for(var i = 0; i < moduleDirs.length; i++){
 var commandRegister = {
 
 };
+
+function getContext(guildConfig, msg, selfMod) {
+	return {
+		msg:msg,
+		Discord:Discord,
+		client: client,
+		commandRegister: commandRegister,
+		logger: mlogger,
+		modules: modules,
+		selfMod: selfMod,
+		guildConfig: guildConfig
+	}
+}
+
 
 for(var i in modules){
 	var m = modules[i];
@@ -93,25 +119,22 @@ for(var i in modules){
 		}
 	}
 }
+
+for(var i = 0; i < moduleInitSequence.length; i++){
+	if(moduleInitSequence[i]){
+		for(var j = 0; j < moduleInitSequence[i].length; j++){
+			var mod = modules[moduleInitSequence[i][j]];
+			mod.init(getContext(null,null,mod));
+		}
+	}
+}
 // load modules in correct order
 // register everything from modules
 
-const Discord = require('discord.js');
-const client = new Discord.Client();
 
 
-function getContext(guildConfig, msg, selfMod) {
-	return {
-		msg:msg,
-		Discord:Discord,
-		client: client,
-		commandRegister: commandRegister,
-		logger: mlogger,
-		modules: modules,
-		selfMod: selfMod,
-		guildConfig: guildConfig
-	}
-}
+
+
 
 client.on('ready', function() {
 	logger.info("Logged in as " + client.user.tag + ".");

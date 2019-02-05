@@ -1,7 +1,7 @@
 module.exports = {
 	_metadata:{
 		core:true,
-		priority:0,
+		hasInit:false,
 		features:["commands"]
 	},
 	getConfig: function(guildID){
