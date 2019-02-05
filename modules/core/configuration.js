@@ -33,7 +33,7 @@ module.exports = {
 			if(result == false){
 				ctx.modules["core/configuration"].initConfig(ctx,guildID,function(success){
 					if(success != false){
-						callback(doc);
+						callback(success);
 					}else{
 						callback(false);
 					}
