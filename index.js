@@ -7,12 +7,12 @@
 * No functionality will be defined in this file.
 */
 const Discord = require('discord.js');
-const client = new Discord.Client({autoReconnect:true});
+const client = new Discord.Client();
 
 const fs = require("fs");
 
 var globalConfig = require('./config.js');
-
+console.log(JSON.stringify(globalConfig,null,2));
 function currentTime() {
     var date = new Date();
     var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
