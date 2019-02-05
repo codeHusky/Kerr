@@ -7,7 +7,7 @@
 * No functionality will be defined in this file.
 */
 const Discord = require('discord.js');
-const client = new Discord.Client();
+const client = new Discord.Client({autoReconnect:true});
 
 const fs = require("fs");
 
@@ -20,18 +20,42 @@ function currentTime() {
     var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
     return hours + ":" + minutes + ":" + seconds;
 }
+
+function getLogFileName() {
+    var date = new Date();
+    var fDate = (date.getMonth()+1) + "-" + date.getDate() + "-" + date.getFullYear();
+   	var filePrefix = "logs " + fDate + " ";
+    var logNum = 0;
+
+    var lastCheckExisted = true;
+    while(lastCheckExisted){
+    	logNum++;
+    	lastCheckExisted = fs.existsSync("./logs/" + filePrefix + logNum + ".log");
+    }
+    return filePrefix + logNum + ".log";
+}
+try{
+	fs.mkdirSync("./logs/");
+}catch(e){}
+const logFileName = getLogFileName();
 const mlogger = {
 	info: function(m, txt){
-		console.log("[" + currentTime() + "] ["+m+"] [INFO] " + txt);
+		var fTxt = "[" + currentTime() + "] ["+m+"] [INFO] " + txt;
+		console.log(fTxt);
+		fs.writeFileSync('./logs/' + logFileName, fTxt + "\n",{flag:"a"});
 	},
 	warn: function(m, txt){
-		console.log("[" + currentTime() + "] ["+m+"] [WARN] " + txt);
+		var fTxt = "[" + currentTime() + "] ["+m+"] [WARN] " + txt;
+		console.log(colors.yellow(fTxt));
+		fs.writeFileSync('./logs/' + logFileName, fTxt + "\n",{flag:"a"});
 	},
 	error: function(m, txt){
-		console.log("[" + currentTime() + "] ["+m+"] [ERROR] " + txt);
+		var fTxt = "[" + currentTime() + "] ["+m+"] [ERROR] " + txt;
+		console.log(colors.red(fTxt));
+		fs.writeFileSync('./logs/' + logFileName, fTxt + "\n",{flag:"a"});
 	}
 }
-
+const colors = require('colors/safe');
 const logger = {
 	info:function(txt){
 		mlogger.info("Wrapper",txt);
@@ -183,6 +207,19 @@ client.on('message', function(msg) {
 		
 	}
 })
+
+client.on('error', (err) => {
+	logger.error("Discord.js exception occured.");
+	logger.error(JSON.stringify(err.error));
+});
+
+client.on('reconnecting', function() {
+	logger.info("Reconnecting to Discord...");
+});
+
+client.on('resume', function() {
+	logger.info("Connection resumed.");
+})
 var clientCheck = setInterval(function() {
 	for(var i in modules){
 		if(modules[i].hasOwnProperty("ready") && !modules[i].ready){
@@ -193,3 +230,15 @@ var clientCheck = setInterval(function() {
 	logger.info("All modules ready, logging in...");
 	client.login(require("./token.js").token);
 },100);
+
+process.on('uncaughtException', (err) => {
+	logger.error("A fatal exception has occured. ");
+	logger.error(err.stack);
+	logger.error("The bot will now shut down.")
+	process.exit(1);
+  	//fs.writeSync(1, `Caught exception: ${err}\n`);
+});
+
+process.on('unhandledRejection', (reason, p) => {
+	logger.warn('Unhandled Rejection! '+ reason);
+});
