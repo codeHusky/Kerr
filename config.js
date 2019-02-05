@@ -23,12 +23,13 @@ var moduleDirs = fs.readdirSync("modules/");
 for(var i = 0; i < moduleDirs.length; i++){
 	var category = moduleDirs[i].toString();
 	var modFiles = fs.readdirSync("modules/" + category + "/")
+	if(category == "core") continue;
 	for(var j = 0; j < modFiles.length; j++){
 		var id = modFiles[j].toString().replace(".js","");
 		var proto = require("./modules/" + category + "/" + modFiles[j].toString());
 		if(proto.hasOwnProperty("_metadata")){
 			var moduleID = moduleDirs[i] + "/" + id;
-			console.log(moduleID);
+			//console.log(moduleID);
 			if(proto._metadata.hasOwnProperty("defaults")){
 				if(!module.exports.defaultGuildConfig.modules.hasOwnProperty(category)){
 					module.exports.defaultGuildConfig.modules[category] = {};
@@ -38,7 +39,7 @@ for(var i = 0; i < moduleDirs.length; i++){
 					module.exports.defaultGuildConfig.moduleSettings[category] = {};
 				}
 				module.exports.defaultGuildConfig.moduleSettings[category][id] = proto._metadata.defaults.settings;
-				console.log("set defaults")
+				//console.log("set defaults")
 			}
 		}
 	}
