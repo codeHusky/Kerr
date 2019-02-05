@@ -11,6 +11,8 @@ const client = new Discord.Client();
 
 const fs = require("fs");
 
+var globalConfig = require('./config.js');
+
 function currentTime() {
     var date = new Date();
     var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
@@ -69,10 +71,7 @@ for(var i = 0; i < moduleDirs.length; i++){
 	}
 }
 
-//console.log(modules);
-var commandRegister = {
-
-};
+var commandRegister = {};
 
 function getContext(guildConfig, msg, selfMod) {
 	return {
@@ -82,8 +81,8 @@ function getContext(guildConfig, msg, selfMod) {
 		commandRegister: commandRegister,
 		logger: mlogger,
 		modules: modules,
-		selfMod: selfMod,
-		guildConfig: guildConfig
+		guildConfig: guildConfig,
+		globalConfig: globalConfig
 	}
 }
 
@@ -119,15 +118,16 @@ for(var i in modules){
 		}
 	}
 }
-
 for(var i = 0; i < moduleInitSequence.length; i++){
 	if(moduleInitSequence[i]){
 		for(var j = 0; j < moduleInitSequence[i].length; j++){
 			var mod = modules[moduleInitSequence[i][j]];
+			mod.ready = false;
 			mod.init(getContext(null,null,mod));
 		}
 	}
 }
+
 // load modules in correct order
 // register everything from modules
 
@@ -138,6 +138,26 @@ for(var i = 0; i < moduleInitSequence.length; i++){
 
 client.on('ready', function() {
 	logger.info("Logged in as " + client.user.tag + ".");
+	client.guilds.forEach(function (guild, key){
+		modules["core/configuration"].getConfig(
+			getContext(null,null,modules["core/configuration"]),
+			guild.id,
+			function(conf) {
+				if(conf == false){
+					logger.error("Failed to prepare guild with id " + guild.id);
+				}
+			});
+	})
+
+	setTimeout(function() {
+		modules["core/configuration"].getConfig(
+			getContext(null,null,modules["core/configuration"]),
+			"539901134995718155",
+			function(conf) {
+				logger.info("GUILD CONF:")
+				logger.info(JSON.stringify(conf));
+			});
+	},10000);
 })
 
 client.on('message', function(msg) {
@@ -156,5 +176,13 @@ client.on('message', function(msg) {
 		}
 	}
 })
-
-client.login(require("./token.js").token);
+var clientCheck = setInterval(function() {
+	for(var i in modules){
+		if(modules[i].hasOwnProperty("ready") && !modules[i].ready){
+			return;
+		}
+	}
+	clearInterval(clientCheck);
+	logger.info("All modules ready, logging in...");
+	client.login(require("./token.js").token);
+},100);
