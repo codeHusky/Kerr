@@ -13,6 +13,10 @@ module.exports = {
 				//var client = ctx.client;
 				var commands = ctx.commandRegister;
 				ctx.msg.channel.send("<@" + ctx.msg.author.id + ">, check your DMs for help.")
+					.then(message => {
+						ctx.scheduleDeletion(message,3000);
+						ctx.scheduleDeletion(ctx.msg, 3000);
+					})
 				var embed = new ctx.Discord.RichEmbed({
 						color:0xf45f42
 				});
@@ -23,6 +27,7 @@ module.exports = {
 						moduleCategories.push(modCate);
 					}
 				}
+				embed.setAuthor("Kerr - " + ctx.msg.guild.name, ctx.client.user.avatarURL);
 				embed.setDescription("Below is a list of commands.");
 
 				for(var i = 0; i < moduleCategories.length; i++){
@@ -46,8 +51,8 @@ module.exports = {
 						embed.addField(pCate,cmdPrintable,false);
 					}
 				}
-				//ctx.msg.author.send(embed);
-				ctx.msg.channel.send(embed);
+				ctx.msg.author.send(embed);
+				//ctx.msg.channel.send(embed);
 			
 			}
 		},

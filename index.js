@@ -94,6 +94,12 @@ for(var i = 0; i < moduleDirs.length; i++){
 		}
 	}
 }
+function scheduleDeletion(msg, time){
+	setTimeout(function() {
+		msg.delete();
+	},time);
+}
+
 
 var commandRegister = {};
 
@@ -106,7 +112,8 @@ function getContext(guildConfig, msg) {
 		logger: mlogger,
 		modules: modules,
 		guildConfig: guildConfig,
-		globalConfig: globalConfig
+		globalConfig: globalConfig,
+		scheduleDeletion: scheduleDeletion
 	}
 }
 
@@ -197,7 +204,7 @@ client.on('message', function(msg) {
 						if(typeof command == "string"){
 							command = commandRegister[command];
 						}
-						command.callback(getContext(guildConfig, msg, modules[command.originModule]));
+						command.callback(getContext(guildConfig, msg, modules[command.originModule]),msg.content.replace(/  +/," ").substring(msg.content.replace(/  +/," ").indexOf(cmd) + cmd.length + 1));
 					}
 				}
 			}else{
@@ -230,6 +237,7 @@ var clientCheck = setInterval(function() {
 	logger.info("All modules ready, logging in...");
 	client.login(require("./token.js").token);
 },100);
+
 
 process.on('uncaughtException', (err) => {
 	logger.error("A fatal exception has occured. ");

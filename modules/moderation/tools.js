@@ -6,7 +6,8 @@ module.exports = {
 		defaults: {
 			enabled: true,
 			settings: {
-				minReasonLength:10
+				minReasonLength:10,
+				muteRole:""
 			}
 		}
 	},
