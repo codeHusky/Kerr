@@ -102,6 +102,36 @@ module.exports = {
 						ctx.msg.channel.send("Invalid parameters. Only accepts 2 parameters.");
 						return;
 					}
+					ctx.modules["core/configuration"].getConfig(ctx, ctx.msg.guild.id, function(result){
+						if(result == false){
+							ctx.msg.channel.send("An error occured while fetching your guild's configuration. No changes were made.");
+						}else{
+							var depth = result;
+							var path = params[0].split(".");
+							for(var i = 0; i < path.length-1/* We want to leave the last element for direct editing. */; i++){
+								if(depth.hasOwnProperty(path[i])){
+									depth = depth[path[i]];
+								}else{
+									ctx.msg.channel.send("Invalid path! Failure at `" + path[i] + "`!");
+									return;
+								}
+							}
+							var originalType = typeof depth[path[path.length-1]];
+							if(originalType == "object"){
+								ctx.msg.channel.send("Invalid path! Must be more specific.");
+							}else{
+								depth[path[path.length-1]] = JSON.parse(params[1]);
+								ctx.modules["core/configuration"].updateConfig(ctx, ctx.msg.guild.id, result, function(result){
+									if(result == false){
+										ctx.msg.channel.send("An error occured while updating your guild's configuration.");
+									}else{
+										ctx.msg.channel.send("Change made successfully.");
+									}
+								});
+							}
+						}
+					})
+
 				}else{
 					ctx.msg.send("<@" + ctx.msg.author.id + ">, you do not have permission to run this command.").then(message => {
 						scheduleDeletion(message,3000);
