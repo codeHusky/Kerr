@@ -204,6 +204,25 @@ client.on('message', function(msg) {
 						if(typeof command == "string"){
 							command = commandRegister[command];
 						}
+						var oM = command.originModule.split("/");
+						if(guildConfig.modules[oM[0]]){
+							if(guildConfig.modules[oM[0]][oM[1]] == false){
+								msg.channel.send("<@" + msg.author.id + ">, this command is disabled.").then(message => {
+									scheduleDeletion(message,3000);
+									scheduleDeletion(msg,3000);
+								});
+								return;
+							}
+						}
+						for(var i = 0; i < command.aliases.length; i++){
+							if(guildConfig.commandBlacklist.indexOf(command.aliases[i]) > -1){
+								msg.channel.send("<@" + msg.author.id + ">, this command is disabled.").then(message => {
+									scheduleDeletion(message,3000);
+									scheduleDeletion(msg,3000);
+								});
+								return;
+							}
+						}
 						command.callback(getContext(guildConfig, msg, modules[command.originModule]),msg.content.replace(/  +/," ").substring(msg.content.replace(/  +/," ").indexOf(cmd) + cmd.length + 1));
 					}
 				}

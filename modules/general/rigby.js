@@ -1,7 +1,7 @@
 module.exports = {
 	_metadata:{
 		core:false,
-		hasInit:false,
+		hasInit:true,
 		features:["commands"],
 		defaults: {
 			enabled: false,
@@ -9,6 +9,9 @@ module.exports = {
 				channel:""
 			}
 		}
+	},
+	init:function(ctx){
+
 	},
 	scrapeRigbyPosts:scrapeRigbyPosts,
 	commands: [

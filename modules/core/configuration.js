@@ -151,9 +151,9 @@ module.exports = {
 					})
 
 				}else{
-					ctx.msg.send("<@" + ctx.msg.author.id + ">, you do not have permission to run this command.").then(message => {
-						scheduleDeletion(message,3000);
-						scheduleDeletion(ctx.msg, 3000);
+					ctx.msg.channel.send("<@" + ctx.msg.author.id + ">, you do not have permission to run this command.").then(message => {
+						ctx.scheduleDeletion(message,3000);
+						ctx.scheduleDeletion(ctx.msg, 3000);
 					})
 				}
 

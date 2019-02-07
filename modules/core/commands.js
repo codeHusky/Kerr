@@ -37,7 +37,11 @@ module.exports = {
 					var cmdPrintable = "";
 					for(var j in commands){
 						var cmd = commands[j];
+						
 						if(typeof cmd == "object"){
+							if(cmd.originModule.indexOf(category) != 0){
+								continue;
+							}
 							var aliases = "";
 							if(cmd.aliases.length > 1){
 								for(var k = 1; k < cmd.aliases.length; k++){
