@@ -192,7 +192,7 @@ client.on('ready', function() {
 })
 
 client.on('message', function(msg) {
-	if(msg.channel.type == "text" && !msg.author.bot){
+	if(msg.channel.type == "text" && msg.guild && !msg.author.bot){
 		modules["core/configuration"].getConfig(getContext(null,msg), msg.guild.id, function(conf){
 			if(conf != false){
 				const guildConfig = conf;
@@ -246,6 +246,119 @@ client.on('reconnecting', function() {
 client.on('resume', function() {
 	logger.info("Connection resumed.");
 })
+
+/**
+*	Module-related event handlers.
+*/
+
+function getModulesForEvent(event){
+	var mods = [];
+	for(var i in modules){
+		if(modules[i]._metadata.features.indexOf("events")>-1){
+			if(modules[i].events.hasOwnProperty(event)){
+				mods.push(i);
+			}
+		}
+	}
+	return mods;
+}
+
+function isModuleEnabled(m, guildID, callback){
+	modules["core/configuration"].getConfig(getContext(), guildID, function(conf){
+		if(conf == false){
+			callback(false);
+		}else{
+			callback(conf.modules[m.split("/")[0]][m.split("/")[1]]);
+		}
+	});
+}
+
+client.on('messageReactionAdd', function(mR, user){
+	var mods = getModulesForEvent('messageReactionAdd');
+	mods.forEach(modID => {
+		if(mR.message.guild){
+			isModuleEnabled(modID, mR.message.guild.id, function(isIt){
+				if(isIt){
+					modules[modID].events.messageReactionAdd(getContext(),mR,user);
+				}
+			})
+		}else{
+			modules[modID].events.messageReactionAdd(getContext(),mR,user);
+		}
+	})
+})
+client.on('messageReactionRemove', function(mR, user){
+	var mods = getModulesForEvent('messageReactionRemove');
+	mods.forEach(modID => {
+		if(mR.message.guild){
+			isModuleEnabled(modID, mR.message.guild.id, function(isIt){
+				if(isIt){
+					modules[modID].events.messageReactionRemove(getContext(),mR,user);
+				}
+			})
+		}else{
+			modules[modID].events.messageReactionRemove(getContext(),mR,user);
+		}
+	})
+})
+client.on('messageReactionRemoveAll', function(message){
+	var mods = getModulesForEvent('messageReactionRemoveAll');
+	mods.forEach(modID => {
+		if(message.guild){
+			isModuleEnabled(modID, message.guild.id, function(isIt){
+				if(isIt){
+					modules[modID].events.messageReactionRemoveAll(getContext(),message);
+				}
+			})
+		}else{
+			modules[modID].events.messageReactionRemoveAll(getContext(),message);
+		}
+	})
+})
+
+client.on('messageUpdate', function(oldMessage, newMessage){
+	var mods = getModulesForEvent('messageUpdate');
+	mods.forEach(modID => {
+		if(newMessage.guild){
+			isModuleEnabled(modID, newMessage.guild.id, function(isIt){
+				if(isIt){
+					modules[modID].events.messageUpdate(getContext(),oldMessage, newMessage);
+				}
+			})
+		}else{
+			modules[modID].events.messageUpdate(getContext(),oldMessage, newMessage);
+		}
+	})
+})
+
+/*const events = {
+	MESSAGE_REACTION_ADD: 'messageReactionAdd',
+	MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
+	MESSAGE_REACTION_REMOVE_ALL: 'messageReactionRemoveAll'
+};
+
+client.on('raw', async event => {
+	if (!events.hasOwnProperty(event.t)) return;
+	const { d: data } = event;
+	const user = client.users.get(data.user_id);
+	const channel = client.channels.get(data.channel_id) || await user.createDM();
+
+	if (channel.messages.has(data.message_id)) return;
+	const message = await channel.fetchMessage(data.message_id);
+	if(data.emoji){
+		const emojiKey = (data.emoji.id) ? `${data.emoji.name}:${data.emoji.id}` : data.emoji.name;
+		var reaction = message.reactions.get(emojiKey);
+		if (!reaction) {
+			// Create an object that can be passed through the event like normal
+			const emoji = new Discord.Emoji(client.guilds.get(data.guild_id), data.emoji);
+			reaction = new Discord.MessageReaction(message, emoji, 0, data.user_id === client.user.id);
+		}
+		client.emit(events[event.t], reaction, user);
+	}else{
+		client.emit(events[event.t], message);
+	}
+});*/
+
 var clientCheck = setInterval(function() {
 	for(var i in modules){
 		if(modules[i].hasOwnProperty("ready") && !modules[i].ready){
@@ -267,5 +380,5 @@ process.on('uncaughtException', (err) => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
-	logger.warn('Unhandled Rejection! '+ reason);
+	logger.warn('Unhandled Rejection! '+ reason.stack);
 });

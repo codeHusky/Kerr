@@ -201,7 +201,38 @@ module.exports = {
 
 				collection.findOne(filter, function(err, result) {
 					if(err){
-						logger.error("Error occured during find: " + data);
+						logger.error("Error occured during find: " + JSON.stringify(filter));
+						logger.error(JSON.stringify(err));
+						callback(false);
+					}else{
+						callback((result)?result:false);
+					}
+				})
+				break;
+		}
+	},
+	removeData: function(ctx, table, filter, callback){
+		const logger = {
+			info:function(txt){
+				ctx.logger.info(ctx.modules["core/database"].id,txt);
+			},
+			warn:function(txt){
+				ctx.logger.warn(ctx.modules["core/database"].id,txt);
+			},
+			error:function(txt){
+				ctx.logger.error(ctx.modules["core/database"].id,txt);
+			}
+		}
+		switch(ctx.globalConfig.dbType.toLowerCase()){
+			case "mongodb":
+				const client = ctx.modules["core/database"].client;
+				const db = client.db(ctx.globalConfig.mongodb.database);
+
+				const collection = db.collection(table);
+
+				collection.findOneAndDelete(filter, function(err, result) {
+					if(err){
+						logger.error("Error occured during findAndDelete: " + JSON.stringify(filter));
 						logger.error(JSON.stringify(err));
 						callback(false);
 					}else{
