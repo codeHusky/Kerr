@@ -25,91 +25,94 @@ module.exports = {
 			reactionStarboardHandler(ctx,message);
 		},
 		"messageUpdate": function(ctx, oldMessage, newMessage){
-			const logger = {
-				info:function(txt){
-					ctx.logger.info(ctx.modules["general/starboard"].id,txt);
-				},
-				warn:function(txt){
-					ctx.logger.warn(ctx.modules["general/starboard"].id,txt);
-				},
-				error:function(txt){
-					ctx.logger.error(ctx.modules["general/starboard"].id,txt);
+			//TODO: clean this up
+			if(newMessage.channel.type == "text" && newMessage.guild && !newMessage.author.bot){
+				const logger = {
+					info:function(txt){
+						ctx.logger.info(ctx.modules["general/starboard"].id,txt);
+					},
+					warn:function(txt){
+						ctx.logger.warn(ctx.modules["general/starboard"].id,txt);
+					},
+					error:function(txt){
+						ctx.logger.error(ctx.modules["general/starboard"].id,txt);
+					}
 				}
-			}
-			ctx.modules["core/configuration"].getConfig(ctx, newMessage.guild.id, function(conf){
-				if(conf != false){
-					var sbConfig = conf.moduleSettings.general.starboard;
-					var count = 0;
-					var hit = false;
-					newMessage.reactions.forEach(reaction => {
-						if((":" + reaction.emoji.name + ":") == sbConfig.voteUpReaction || reaction.emoji.toString() == sbConfig.voteUpReaction){
-							if(reaction.emoji.guild){
-								if(reaction.emoji.guild.id != newMessage.guild.id) return;
-							}
-							count += reaction.count;
-							hit = true;
-						}
-						if(sbConfig.enableDownvoting){
-							if((":" + reaction.emoji.name + ":") == sbConfig.voteDownReaction || reaction.emoji.toString() == sbConfig.voteDownReaction){
+				ctx.modules["core/configuration"].getConfig(ctx, newMessage.guild.id, function(conf){
+					if(conf != false){
+						var sbConfig = conf.moduleSettings.general.starboard;
+						var count = 0;
+						var hit = false;
+						newMessage.reactions.forEach(reaction => {
+							if((":" + reaction.emoji.name + ":") == sbConfig.voteUpReaction || reaction.emoji.toString() == sbConfig.voteUpReaction){
 								if(reaction.emoji.guild){
 									if(reaction.emoji.guild.id != newMessage.guild.id) return;
 								}
-								count -= reaction.count;
+								count += reaction.count;
 								hit = true;
 							}
-						}
-					})
-					if(hit){
-						ctx.modules["core/database"].getData(ctx, "starboard", {messageID: newMessage.id}, function (result){
-							if(count >= sbConfig.threshold){
-								
-								
-								if(result != false){
-									ctx.client.guilds.get(newMessage.guild.id).channels.get(sbConfig.channel).fetchMessage(result.sbMessageID)
-										.then(sbm => {
-											// ok
-											sbm.edit(generateStarboardEmbed(ctx, newMessage, count))
-										})
-										.catch(err => {
-											logger.error(err.stack);
-										});
-								}else{
-									ctx.client.guilds.get(newMessage.guild.id).channels.get(sbConfig.channel).send(generateStarboardEmbed(ctx, newMessage, count))
-										.then(sbm => {
-											var newData = {
-												messageID: newMessage.id,
-												sbMessageID: sbm.id
-											};
-											ctx.modules["core/database"].insertData(ctx, "starboard", newData, function (result){
-												// cool
-											});
-										})
-										.catch(err => {
-											logger.error(err.stack);
-										});
+							if(sbConfig.enableDownvoting){
+								if((":" + reaction.emoji.name + ":") == sbConfig.voteDownReaction || reaction.emoji.toString() == sbConfig.voteDownReaction){
+									if(reaction.emoji.guild){
+										if(reaction.emoji.guild.id != newMessage.guild.id) return;
+									}
+									count -= reaction.count;
+									hit = true;
 								}
-
-							}else{
-								if(result != false){
-									ctx.client.guilds.get(message.guild.id).channels.get(sbConfig.channel).fetchMessage(result.sbMessageID)
-										.then(sbm => {
-											sbm.delete();
-											// ok
-											ctx.modules["core/database"].removeData(ctx, "starboard", {messageID: message.id}, function (result){
-												// neat;
-											});
-										})
-										.catch(err => {
-											logger.error(err.stack);
-										});
-								}	
-								
 							}
 						})
-						
+						if(hit){
+							ctx.modules["core/database"].getData(ctx, "starboard", {messageID: newMessage.id}, function (result){
+								if(count >= sbConfig.threshold){
+									
+									
+									if(result != false){
+										ctx.client.guilds.get(newMessage.guild.id).channels.get(sbConfig.channel).fetchMessage(result.sbMessageID)
+											.then(sbm => {
+												// ok
+												sbm.edit(generateStarboardEmbed(ctx, newMessage, count))
+											})
+											.catch(err => {
+												logger.error(err.stack);
+											});
+									}else{
+										ctx.client.guilds.get(newMessage.guild.id).channels.get(sbConfig.channel).send(generateStarboardEmbed(ctx, newMessage, count))
+											.then(sbm => {
+												var newData = {
+													messageID: newMessage.id,
+													sbMessageID: sbm.id
+												};
+												ctx.modules["core/database"].insertData(ctx, "starboard", newData, function (result){
+													// cool
+												});
+											})
+											.catch(err => {
+												logger.error(err.stack);
+											});
+									}
+
+								}else{
+									if(result != false){
+										ctx.client.guilds.get(message.guild.id).channels.get(sbConfig.channel).fetchMessage(result.sbMessageID)
+											.then(sbm => {
+												sbm.delete();
+												// ok
+												ctx.modules["core/database"].removeData(ctx, "starboard", {messageID: message.id}, function (result){
+													// neat;
+												});
+											})
+											.catch(err => {
+												logger.error(err.stack);
+											});
+									}	
+									
+								}
+							})
+							
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	},
 	commands:[
