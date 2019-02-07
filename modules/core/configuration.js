@@ -121,15 +121,24 @@ module.exports = {
 								}
 							}
 							var originalType = typeof depth[path[path.length-1]];
-							if(originalType == "object"){
+							if(originalType == "object" && !originalType.hasOwnProperty("length")){
 								ctx.msg.channel.send("Invalid path! Must be more specific.");
 							}else{
-								
+								var val;
 								try{
-									depth[path[path.length-1]] = JSON.parse(params[1]);
+									val = JSON.parse(params[1]);
 								}catch(e){
-									depth[path[path.length-1]] = params[1];
+									val = params[1];
 								}
+								if(originalType == "boolean" && typeof val != "boolean" || 
+									originalType == "string" && typeof val != "string" || 
+									originalType == "number" && typeof val != "number"){
+									ctx.msg.channel.send("Type mismatch: was given a " + (typeof val) + ", expected a " + originalType);
+									return;
+								}
+								
+								depth[path[path.length-1]] = val;
+								
 								ctx.modules["core/configuration"].updateConfig(ctx, ctx.msg.guild.id, result, function(result){
 									if(result == false){
 										ctx.msg.channel.send("An error occured while updating your guild's configuration.");
