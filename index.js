@@ -165,10 +165,15 @@ for(var i = 0; i < moduleInitSequence.length; i++){
 
 
 
-
+function setActivity() {
+	client.user.setActivity('over rigby.space', { type: 'WATCHING' })
+	  .then(presence => {})
+	  .catch(console.error);
+}
 
 client.on('ready', function() {
 	logger.info("Logged in as " + client.user.tag + ".");
+	setActivity()
 	client.guilds.forEach(function (guild, key){
 		modules["core/configuration"].getConfig(
 			getContext(null,null,modules["core/configuration"]),
@@ -180,18 +185,11 @@ client.on('ready', function() {
 			});
 	})
 
-	/*setTimeout(function() {
-		modules["core/configuration"].getConfig(
-			getContext(null,null,modules["core/configuration"]),
-			"539901134995718155",
-			function(conf) {
-				logger.info("GUILD CONF:")
-				logger.info(JSON.stringify(conf));
-			});
-	},10000);*/
+
 })
 
 client.on('message', function(msg) {
+	if(msg.author.id == client.user.id) return;
 	if(msg.channel.type == "text" && msg.guild && !msg.author.bot){
 		modules["core/configuration"].getConfig(getContext(null,msg), msg.guild.id, function(conf){
 			if(conf != false){
@@ -225,12 +223,21 @@ client.on('message', function(msg) {
 						}
 						command.callback(getContext(guildConfig, msg, modules[command.originModule]),msg.content.replace(/  +/," ").substring(msg.content.replace(/  +/," ").indexOf(cmd) + cmd.length + 1));
 					}
+				}else{
+					if(msg.content.toLowerCase().indexOf("<@!" + client.user.id + "> prefix") == 0){
+						msg.delete();
+						msg.author.send("The command prefix for **" + msg.guild.name + "** is `" + conf.prefix + "`.")
+					}
 				}
 			}else{
 				logger.error("Failed to retrieve guild config.");
 			}
 		});
 		
+	}else{
+		if(msg.channel.type == "dm"){
+			msg.channel.send("Hi there! If you'd like to know my prefix for a given server you're in, please ping me there like this: `@Kerr prefix`\nThank you!")
+		}
 	}
 })
 
@@ -245,6 +252,7 @@ client.on('reconnecting', function() {
 
 client.on('resume', function() {
 	logger.info("Connection resumed.");
+	setActivity()
 })
 
 /**
