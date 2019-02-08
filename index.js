@@ -174,7 +174,9 @@ function setActivity() {
 client.on('ready', function() {
 	logger.info("Logged in as " + client.user.tag + ".");
 	setActivity()
+	var guilds = [];
 	client.guilds.forEach(function (guild, key){
+		guilds.push(guild.name);
 		modules["core/configuration"].getConfig(
 			getContext(null,null,modules["core/configuration"]),
 			guild.id,
@@ -184,7 +186,21 @@ client.on('ready', function() {
 				}
 			});
 	})
+	logger.info("Guilds: " + guilds.join(", "));
 
+})
+
+client.on('guildCreate', function(guild){
+	modules["core/configuration"].getConfig(
+		getContext(null,null,modules["core/configuration"]),
+		guild.id,
+		function(conf) {
+			if(conf == false){
+				logger.error("Failed to prepare guild with id " + guild.id);
+			}else{
+				logger.info("Joined " + guild.name);
+			}
+		});
 
 })
 
