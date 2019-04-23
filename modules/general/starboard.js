@@ -142,6 +142,7 @@ module.exports = {
 };
 
 function reactionStarboardHandler(ctx,message,re){
+	
 	const logger = {
 		info:function(txt){
 			ctx.logger.info(ctx.modules["general/starboard"].id,txt);
@@ -178,7 +179,7 @@ function reactionStarboardHandler(ctx,message,re){
 			})
 			if(!hit && re){
 				if((":" + re.emoji.name + ":") == sbConfig.voteUpReaction || re.emoji.toString() == sbConfig.voteUpReaction ||  
-					sbConfig.enableDownvoting && ((":" + reaction.emoji.name + ":") == sbConfig.voteDownReaction || reaction.emoji.toString() == sbConfig.voteDownReaction)){
+					sbConfig.enableDownvoting && ((":" + re.emoji.name + ":") == sbConfig.voteDownReaction || re.emoji.toString() == sbConfig.voteDownReaction)){
 					if(re.emoji.guild){
 						if(re.emoji.guild.id != message.guild.id) return;
 					}

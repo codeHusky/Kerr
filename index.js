@@ -6,7 +6,7 @@
 * this file. 
 * No functionality will be defined in this file.
 */
-const Discord = require('discord.js');
+const Discord = require('./proprietary_modules/discord.js/src/index.js');
 const client = new Discord.Client();
 
 const fs = require("fs");
@@ -67,6 +67,18 @@ const logger = {
 		mlogger.error("Wrapper",txt);
 	},
 }
+
+process.on('uncaughtException', (err) => {
+	logger.error("A fatal exception has occured. ");
+	logger.error(err.stack);
+	logger.error("The bot will now shut down.")
+	process.exit(1);
+  	//fs.writeSync(1, `Caught exception: ${err}\n`);
+});
+
+process.on('unhandledRejection', (reason, p) => {
+	logger.warn('Unhandled Rejection! '+ reason.stack);
+});
 
 var modules = {};
 var moduleInitSequence = [];
@@ -240,7 +252,7 @@ client.on('message', function(msg) {
 						command.callback(getContext(guildConfig, msg, modules[command.originModule]),msg.content.replace(/  +/," ").substring(msg.content.replace(/  +/," ").indexOf(cmd) + cmd.length + 1));
 					}
 				}else{
-					if(msg.content.toLowerCase().indexOf("<@!" + client.user.id + "> prefix") == 0){
+					if(msg.content.toLowerCase().indexOf("<@" + client.user.id + "> prefix") == 0 || msg.content.toLowerCase().indexOf("<@!" + client.user.id + "> prefix") == 0){
 						msg.delete();
 						msg.author.send("The command prefix for **" + msg.guild.name + "** is `" + conf.prefix + "`.")
 					}
@@ -395,14 +407,3 @@ var clientCheck = setInterval(function() {
 },100);
 
 
-process.on('uncaughtException', (err) => {
-	logger.error("A fatal exception has occured. ");
-	logger.error(err.stack);
-	logger.error("The bot will now shut down.")
-	process.exit(1);
-  	//fs.writeSync(1, `Caught exception: ${err}\n`);
-});
-
-process.on('unhandledRejection', (reason, p) => {
-	logger.warn('Unhandled Rejection! '+ reason.stack);
-});
