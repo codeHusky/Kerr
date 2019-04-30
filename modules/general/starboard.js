@@ -243,7 +243,7 @@ function generateStarboardEmbed(ctx, message, count){
 	var embed = new ctx.Discord.RichEmbed({
 		color:0xf45f42
 	});
-	embed.setAuthor(message.member.displayName + " (" + message.member.id + ")", message.author.avatarURL);
+	embed.setAuthor(((message.member)?message.member.displayName:message.author.username) + " (" + message.author.id + ")", message.author.avatarURL);
 	embed.addField("Channel","<#" + message.channel.id + ">")
 	embed.addField("Message",((message.cleanContent.length > 0)?(message.cleanContent.substring(0,500) + ((message.cleanContent.length > 500)?"...":"")):"") + "\n[Link to Message](" + "https://discordapp.com/channels/"+ message.guild.id + "/" + message.channel.id + "/" + message.id + ")");
 	embed.setFooter(count + " ✔️ | " + new Date())

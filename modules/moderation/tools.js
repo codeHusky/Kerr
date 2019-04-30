@@ -33,6 +33,7 @@ module.exports = {
 					if(isNaN(parseFloat(num))){
 						ctx.msg.delete();
 						ctx.msg.author.send("You must specifiy a valid number to purge.");
+						return;
 					}
 					ctx.msg.channel.fetchMessages({
 						limit: Math.min(100,(parseFloat(num) + 1))
